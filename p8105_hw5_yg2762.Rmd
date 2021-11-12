@@ -1,0 +1,78 @@
+---
+title: "p8105_hw5_yg2762"
+author: "Yang Gao"
+date: "11/11/2021"
+output: github_document
+---
+
+```{r}
+library(tidyverse)
+library(rvest)
+```
+
+Problem 2
+dataframe containing all file names
+```{r}
+file_names = 
+  list.files (path = "./data", pattern = NULL, all.files = FALSE,
+           full.names = FALSE, recursive = FALSE,
+           ignore.case = FALSE, include.dirs = FALSE, no.. = FALSE)
+study_df = tibble (file_names)
+```
+
+```{r}
+files = function (x) {
+  read_file = read_csv(file = x)
+}
+```
+
+```{r}
+file_names = 
+  list.files (path = "./data", pattern = NULL, all.files = FALSE,
+           full.names = FALSE, recursive = FALSE,
+           ignore.case = FALSE, include.dirs = FALSE, no.. = FALSE)
+study_df = tibble (file_names)
+
+data_path = "./data"
+
+study_df = study_df %>% 
+  mutate (file_contents = map(file_names, ~read_csv(file.path (data_path, .))))
+```
+
+```{r}
+tidy_study_df = study_df %>% 
+  unnest (cols = file_contents) %>% 
+  separate(file_names, into = c("file_names", "."), sep = 6) %>%
+  select(-.) %>% 
+  pivot_longer(
+    week_1:week_8,
+    names_to = "week",
+    values_to = "value"
+  ) 
+
+ggplot(tidy_study_df, aes(x = week, y = value)) + 
+  geom_line(aes(group = file_names, color = file_names), alpha=0.8)
+```
+
+
+
+
+Problem 3
+```{r}
+library(tidyverse)
+
+set.seed(10)
+
+iris_with_missing = iris %>% 
+  map_df(~replace(.x, sample(1:150, 20), NA)) %>%
+  mutate(Species = as.character(Species))
+```
+
+```{r}
+
+
+
+
+```
+
+
