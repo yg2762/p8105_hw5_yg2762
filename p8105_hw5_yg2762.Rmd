@@ -10,6 +10,90 @@ library(tidyverse)
 library(rvest)
 ```
 
+Problem 1
+
+```{r}
+homicide_df = 
+  read.csv("./homicide-data.csv", na = c(" ", "Unknown")) %>% 
+  mutate(city_state = str_c(city, state)) %>% 
+  relocate(city_state) %>%
+  mutate(
+  resolution = case_when(
+    disposition =="Closed without arrest" ~ "unsolved",
+    disposition =="Open/No arrest" ~"unsolved",
+    disposition =="Closed by arrest" ~ "solved")) %>% 
+  relocate(city_state) %>% 
+  filter(city_state !="TulsaAL")
+```
+
+```{r}
+baltimore_df = 
+  homicide_df %>% 
+  filter(city_state =="BaltimoreMD")
+
+baltimore_summary = 
+  baltimore_df %>% 
+  summarize(
+    unsolved = sum(resolution =="unsolved"), n = n()
+  )
+
+
+baltimore_test = 
+  prop.test(
+    x = baltimore_summary %>%  pull(unsolved),
+    n = baltimore_summary %>% pull(n)
+  )
+
+baltimore_test %>% 
+  broom::tidy()
+```
+
+```{r}
+prop_test_function = function(city_df){
+  
+  city_summary = 
+  city_df %>% 
+  summarize(
+    unsolved = sum(resolution =="unsolved"), 
+    n =n()
+  )
+
+
+city_test = 
+  prop.test(
+    x = city_summary %>%  pull(unsolved),
+    n = city_summary %>% pull(n)
+  )
+
+return(city_test)
+  
+}
+```
+
+
+```{r}
+result_df = 
+  homicide_df %>% 
+  nest(data = uid : resolution) %>% 
+  mutate(
+    test_result = map(data, prop_test_function),
+    tidy_result = map(test_result, broom::tidy)
+  ) %>% 
+  select(city_state, tidy_result) %>% 
+  unnest(tidy_result) %>% 
+  select(city_state, estimate, starts_with("conf"))
+```
+
+```{r}
+result_df %>% 
+  mutate(city_state = fct_reorder(city_state, estimate)) %>% 
+  ggplot(aes(x = city_state, y = estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high)) +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+
 Problem 2
 dataframe containing all file names
 ```{r}
@@ -84,5 +168,7 @@ fill = function(x) {
 output = map(iris_with_missing, fill)
 
 iris_no_missing = bind_rows(output)
+
+iris_no_missing
 ```
 
