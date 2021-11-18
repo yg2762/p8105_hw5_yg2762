@@ -112,7 +112,7 @@ file_names =
            ignore.case = FALSE, include.dirs = FALSE, no.. = FALSE)
 study_df = tibble (file_names)
 
-data_path = "./data"
+data_path = "./data" 
 
 study_df = study_df %>% 
   mutate (file_contents = map(file_names, ~read_csv(file.path (data_path, .))))
@@ -138,7 +138,14 @@ Make a spaghetti plot showing observations on each subject over time. According 
 
 ```{r,fig.width=15}
 ggplot(tidy_study_df, aes(x = week, y = value)) + 
-  geom_line(aes(group = file_names, color = arm)) + facet_wrap(~arm)
+  geom_line(aes(group = file_names, color = arm)) + 
+  facet_wrap(~arm) +
+  labs(
+    title = "Value Change over Time",
+    x = "Week",
+    y = "Value"
+  ) +
+  theme_minimal()
 ```
 
 
